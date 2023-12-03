@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+PROTOCOL=sftp
+HOST=sftp.pjwstk.edu.pl
+
+COMMAND=lftp
+
+read -p "Enter your eska: " ESKA
+
+[ $(which $COMMAND 2> /dev/null) ] && echo "Loggin in to $HOST using protocol $PROTOCOL under $ESKA" || (echo "$COMMAND not found. Please download it using your package manager" && exit 1)
+
+$COMMAND "$PROTOCOL://$ESKA@$HOST"

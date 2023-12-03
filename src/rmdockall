@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+command docker 2> /dev/null || { echo "Docker is not installed."; exit 127;}
+
+if [[ $(docker ps -aq) ]]; then
+    if [[ $(docker ps -q) ]]; then
+        docker stop $(docker ps -q)
+    fi
+    docker rm $(dockber ps -aq)
+else
+    echo "There are no containers to remove."
+fi
