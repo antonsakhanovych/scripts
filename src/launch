@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+[ $(which nohup 2> /dev/null) ] || { echo "Please install nohup command."; exit 127;}
+[ $# -eq 0 ] && { echo "Please provide a command"; exit 1;}
+[ $(which $1 2> /dev/null) ] || { echo "Provided command doesn't exist."; exit 127;}
+
+nohup $@ 2>&1 > /dev/null &
