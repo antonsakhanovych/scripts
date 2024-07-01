@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+launch qemu-system-x86_64 -hda ~/VirtualMachines/kali-linux-2024.1-qemu-amd64.qcow2 -m 4096 -smp 4

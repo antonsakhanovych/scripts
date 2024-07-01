@@ -1,0 +1,97 @@
+#!/usr/bin/env python3
+
+import argparse
+import sys
+from pathlib import Path
+
+build_src = """const std = @import("std");
+
+pub fn build(b: *std.Build) !void {
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
+    const exe = b.addExecutable(.{
+        .name = "%s",
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
+    exe.addCSourceFiles(.{
+        .root = b.path("src"),
+        .files = &[_][]const u8{"main.c"},
+        .flags = &[_][]const u8{ "-std=c99", "-Wall", "-Wextra" },
+    });
+
+    b.installArtifact(exe);
+
+    const run_cmd = b.addRunArtifact(exe);
+    const run_step = b.step("run", "Run the program");
+    run_step.dependOn(&run_cmd.step);
+}
+"""
+
+main_src = """#include <stdio.h>
+
+int main(int argc, char** argv){
+    printf("Hello world!\\n");
+    return 0;
+}
+"""
+
+gitignore_src = """zig-out
+zig-cache
+"""
+
+files_to_create = {
+    Path("README.md"): "",
+    Path("build.zig"): build_src,
+    Path("src/main.c"): main_src,
+    Path(".gitignore"): gitignore_src,
+}
+
+
+def createFiles(dir: str = ""):
+    for file, content in files_to_create.items():
+        file = dir / file
+        file.parent.mkdir(exist_ok=True, parents=True)
+        with file.open("w") as f:
+            f.write(content)
+
+
+def matchArgs(args: argparse.Namespace):
+    currDir = None
+    match args.subcommand:
+        case "init":
+            currDir = "./"
+        case "new":
+            currDir = args.projName
+            files_to_create[Path("build.zig")] %= args.projName
+        case _:
+            raise argparse.ArgumentError(
+                args.subcommand, "Such subcommand doesn't exist"
+            )
+    createFiles(currDir)
+
+
+def main():
+    main_parser = argparse.ArgumentParser()
+    subparsers = main_parser.add_subparsers(help="subcommands", dest="subcommand")
+
+    init_subparser = subparsers.add_parser(
+        "init", help="Initiate project in the current directory"
+    )
+
+    new_subparser = subparsers.add_parser(
+        "new", help="Create new project in a new folder"
+    )
+    new_subparser.add_argument("projName", help="Name of the project")
+    args = main_parser.parse_args()
+
+    if args.subcommand is None:
+        main_parser.print_help()
+        sys.exit()
+
+    matchArgs(args)
+
+
+if __name__ == "__main__":
+    main()

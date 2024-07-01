@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+name=$1
+
+shift 1
+
+g++ -g -O2 -std=gnu++17 -static -o $name -lrt -Wl,--whole-archive -lpthread -Wl,--no-whole-archive $@
