@@ -33,7 +33,7 @@ RESPONSE=$(curl -s -X POST "$API_URL" \
     -H Authorization:"Bearer $TOKEN" \
     -F operations="$PAYLOAD" \
     -F map='{ "0": ["variables.files.0"]}'\
-    -F 0=@$FILE
+    -F 0="@$FILE;type=text/*"
 )
 
 
