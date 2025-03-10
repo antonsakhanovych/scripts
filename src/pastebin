@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+echo "Enter your access token"
+read -s TOKEN
+echo "Select file to upload"
+read -e FILE
+
+API_URL="https://paste.sr.ht/query"
+
+if [ ! -f "$FILE" ]; then
+    echo "File doesn't exist!"
+    exit 1
+fi
+
+RESPONSE=$(curl -s -X POST\
+     -H Authorization:"Bearer $TOKEN" \
+     -H Content-Type:application/json \
+     -d '{"query": "{ me { canonicalName } }"}' \
+     $API_URL)
+
+NAME=$(echo -n $RESPONSE | jq -r '.data.me.canonicalName')
+
+# Create JSON payload for GraphQL mutation
+PAYLOAD='{
+            "query": "mutation($files: [Upload!]!, $visibility: Visibility!) { create(files: $files, visibility: $visibility) { id } }", 
+            "variables": { 
+                "files": [null], 
+                "visibility": "UNLISTED"
+            }
+        }'
+
+RESPONSE=$(curl -s -X POST "$API_URL" \
+    -H Authorization:"Bearer $TOKEN" \
+    -F operations="$PAYLOAD" \
+    -F map='{ "0": ["variables.files.0"]}'\
+    -F 0=@$FILE
+)
+
+
+PASTE_ID=$(echo "$RESPONSE" | jq -r '.data.create.id')
+
+if [ "$PASTE_ID" != "null" ]; then
+    echo "https://paste.sr.ht/$NAME/$PASTE_ID"
+else
+    echo "ERROR: $RESPONSE"
+fi
